@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 type Category = "Mobile" | "Backend" | "Owner" | "Product";
 type Week = {
@@ -444,6 +444,21 @@ const studyGuides: StudyGuide[] = [
   },
 ];
 
+const coreEssentials = [
+  ["Tách core chung khỏi stack: lifecycle, state, async và rendering; sau đó học riêng Flutter/Dart hoặc Android/Kotlin.", "Dart/Kotlin core: null safety, collection, equality, exception, event loop/coroutine cancellation.", "Mobile platform: layout constraints, navigation, process death, networking, offline cache và secure storage.", "Accessibility, unit/widget/integration test và resource cleanup là yêu cầu production, không phải phần phụ."],
+  ["Coupling, cohesion, dependency direction và source of truth là tiêu chí chọn architecture.", "SOLID là công cụ nhận diện trách nhiệm và điểm thay đổi, không phải mục tiêu tạo nhiều layer.", "Phân biệt unit, integration, contract và end-to-end test; ưu tiên test tại boundary rủi ro.", "Mọi dependency phải có owner, lifecycle và failure behavior rõ ràng."],
+  ["Hiểu pipeline build → layout → paint → raster và ngân sách frame theo refresh rate.", "Đo startup, p95 frame, jank, memory, GC, request count và time-to-result trên profile/release build.", "Phân biệt CPU-bound, I/O-bound, allocation churn và memory leak trước khi chọn cách tối ưu.", "Thiết lập performance budget và regression check cho critical journey."],
+  ["Nắm build variant, signing, version compatibility và staged rollout.", "Thiết kế auth/token lifecycle, secure storage, PII redaction và SDK consent trước release.", "CI phải kiểm tra test, size, symbol/mapping upload và smoke test trên release artifact.", "Mỗi rollout cần guardrail, kill switch, rollback owner và tiêu chí dừng."],
+  ["Java core: collections, generics, equals/hashCode, exception và resource management.", "JVM core: heap/stack, GC, thread, executor, synchronization và Java Memory Model.", "HTTP core: method semantics, status code, headers, caching, content negotiation và CORS.", "Spring Security, authentication/authorization, OWASP và integration/contract test là baseline API."],
+  ["ACID, isolation anomaly và transaction boundary phải được hiểu trước annotation @Transactional.", "Persistence context, entity identity, flush và dirty checking quyết định thời điểm SQL chạy.", "Unique/check/foreign-key constraint là lớp bảo vệ cuối cho invariant và idempotency.", "Concurrency test phải tái hiện lost update, duplicate submit, deadlock và retry exhaustion."],
+  ["Relational modeling, normalization và constraint đi trước index/query tuning.", "Hiểu B-tree, selectivity, cardinality, composite-index order và execution plan.", "Quản lý connection pool, transaction lifetime, batch size và lock footprint.", "Migration phải có backup/restore verification, expand–contract, backfill quan sát được và forward-fix."],
+  ["Phân biệt log, metric, trace; mỗi signal trả lời một loại câu hỏi khác nhau.", "Định nghĩa SLI/SLO, error budget, RED/USE metrics và cardinality budget.", "Correlation ID phải xuyên Mobile → API → dependency → database nhưng không làm lộ PII/token.", "Debug theo timeline và evidence; luôn lưu hypothesis đã loại trừ và phép đo xác nhận."],
+  ["Chấp nhận partial failure và network không tin cậy; timeout phải theo deadline budget.", "Hiểu at-most-once, at-least-once, ordering, deduplication và backpressure.", "Idempotency, outbox, state machine và reconciliation giải quyết các lớp lỗi khác nhau.", "Cache invalidation, clock skew, eventual consistency và disaster recovery cần failure test cụ thể."],
+  ["Quản lý outcome, WIP, dependency và risk thay vì chỉ theo dõi ticket.", "Capacity estimate gồm traffic, storage growth, concurrency, latency budget và chi phí.", "Mỗi workstream cần owner, decision log, SLO, rollout/rollback và operational readiness checklist.", "Escalation tốt phải có impact, evidence, options, recommendation và deadline quyết định."],
+  ["System design bắt đầu từ requirement, invariant, scale và failure mode trước technology choice.", "Review phải bao phủ API/data model, security threat, observability, test strategy, migration và cost.", "Phân biệt reversible và irreversible decision để chọn độ sâu review phù hợp.", "Operational readiness gồm dashboard, alert, runbook, on-call owner và recovery drill."],
+  ["Dùng metric tree nối user outcome với product metric và system guardrail.", "Hiểu funnel, cohort, retention, sample bias, statistical significance và practical significance.", "Experiment phải có hypothesis, primary metric, guardrail, exposure rule và stopping rule trước khi chạy.", "Analytics cần data contract, privacy/consent, event quality và kiểm tra sai lệch giữa client–server."],
+] as const;
+
 const artifactTargets = [
   ["Technical design", 3], ["Architecture decision record", 3], ["Performance report", 3],
   ["Incident / postmortem", 2], ["Migration plan", 2], ["API contract", 2],
@@ -456,15 +471,23 @@ type State = {
   completed: string[];
   reviews: Record<number, Review>;
   artifacts: Record<string, number>;
+  mastery: Record<string, number>;
 };
 
-const initialState: State = { selectedWeek: 0, completed: [], reviews: {}, artifacts: {} };
-let saveQueue = Promise.resolve();
+type Filter = "All" | Category | "Review";
+type SaveStatus = "idle" | "saving" | "saved" | "error";
+
+const initialState: State = { selectedWeek: 0, completed: [], reviews: {}, artifacts: {}, mastery: {} };
 
 export default function Home() {
   const [state, setState] = useState<State>(initialState);
-  const [filter, setFilter] = useState<"All" | Category>("All");
+  const [filter, setFilter] = useState<Filter>("All");
   const [notice, setNotice] = useState("");
+  const [loaded, setLoaded] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const saveQueue = useRef(Promise.resolve());
+  const saveVersion = useRef(0);
 
   useEffect(() => {
     fetch("/api/progress")
@@ -472,45 +495,95 @@ export default function Home() {
         if (!response.ok) throw new Error();
         return response.json();
       })
-      .then((saved) => setState({ ...initialState, ...saved }))
-      .catch(() => setNotice("Không đọc được file tiến độ. Hãy khởi động lại website local."));
+      .then((saved) => {
+        const params = new URLSearchParams(window.location.search);
+        const weekFromUrl = Number(params.get("week"));
+        const filterFromUrl = params.get("filter") as Filter | null;
+        const mastery = saved.mastery ?? Object.fromEntries((saved.completed ?? []).map((id: string) => [id, 3]));
+        setState({
+          ...initialState,
+          ...saved,
+          mastery,
+          selectedWeek: Number.isInteger(weekFromUrl) && weekFromUrl >= 1 && weekFromUrl <= weeks.length ? weekFromUrl - 1 : saved.selectedWeek,
+        });
+        if (["All", "Mobile", "Backend", "Owner", "Product", "Review"].includes(filterFromUrl ?? "")) setFilter(filterFromUrl!);
+      })
+      .catch(() => setNotice("Không đọc được data/review-progress.md. Hãy kiểm tra block dữ liệu rồi khởi động lại website local."))
+      .finally(() => setLoaded(true));
+
+    return () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    };
   }, []);
 
   const update = (next: State) => {
+    if (!loaded) return;
     setState(next);
-    saveQueue = saveQueue
-      .then(() => fetch("/api/progress", {
-        method: "PUT",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(next),
-      }))
-      .then((response) => {
-        if (!response.ok) throw new Error();
-      })
-      .catch(() => setNotice("Chưa lưu được tiến độ vào file. Hãy thử lại."));
+    setNotice("");
+    setSaveStatus("saving");
+    const version = ++saveVersion.current;
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => {
+      saveQueue.current = saveQueue.current
+        .then(async () => {
+          const response = await fetch("/api/progress", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify(next) });
+          if (!response.ok) throw new Error();
+          if (saveVersion.current === version) setSaveStatus("saved");
+        })
+        .catch(() => {
+          if (saveVersion.current === version) setSaveStatus("error");
+        });
+    }, 700);
   };
+
+  useEffect(() => {
+    if (!loaded) return;
+    const params = new URLSearchParams(window.location.search);
+    params.set("week", String(state.selectedWeek + 1));
+    filter === "All" ? params.delete("filter") : params.set("filter", filter);
+    window.history.replaceState(null, "", `${window.location.pathname}?${params}${window.location.hash || "#today"}`);
+  }, [filter, loaded, state.selectedWeek]);
 
   const selected = weeks[state.selectedWeek];
   const guide = studyGuides[state.selectedWeek];
-  const totalTopics = weeks.reduce((sum, week) => sum + week.topics.length, 0);
-  const overall = Math.round((state.completed.length / totalTopics) * 100);
-  const weekDone = selected.topics.filter((_, index) => state.completed.includes(`w${state.selectedWeek}-t${index}`)).length;
+  const scoreFor = (weekIndex: number, topicIndex: number) => state.mastery[`w${weekIndex}-t${topicIndex}`] ?? (state.completed.includes(`w${weekIndex}-t${topicIndex}`) ? 3 : undefined);
+  const scoredSkills = weeks.flatMap((week, weekIndex) => week.topics.map((topic, topicIndex) => ({ topic, weekIndex, category: week.category, score: scoreFor(weekIndex, topicIndex) })));
+  const totalTopics = scoredSkills.length;
+  const masteredTopics = scoredSkills.filter((skill) => skill.score === 3).length;
+  const overall = Math.round((masteredTopics / totalTopics) * 100);
+  const weekDone = selected.topics.filter((_, index) => scoreFor(state.selectedWeek, index) === 3).length;
   const weekProgress = Math.round((weekDone / selected.topics.length) * 100);
-  const visibleWeeks = useMemo(() => weeks.map((week, index) => ({ week, index })).filter(({ week }) => filter === "All" || week.category === filter), [filter]);
+  const visibleWeeks = useMemo(() => weeks.map((week, index) => ({ week, index })).filter(({ week, index }) => {
+    if (filter === "All") return true;
+    if (filter === "Review") return week.topics.some((_, topicIndex) => scoreFor(index, topicIndex) !== 3) || state.reviews[index]?.score !== "3";
+    return week.category === filter;
+  }), [filter, state.completed, state.mastery, state.reviews]);
   const review = state.reviews[state.selectedWeek] ?? { submission: "", score: "", feedback: "" };
+  const scoredOnly = scoredSkills.filter((skill): skill is typeof skill & { score: number } => skill.score !== undefined);
+  const weakestCategory = (["Mobile", "Backend", "Owner", "Product"] as Category[])
+    .map((category) => {
+      const scores = scoredOnly.filter((skill) => skill.category === category).map((skill) => skill.score);
+      return { category, average: scores.length ? scores.reduce((sum, score) => sum + score, 0) / scores.length : null };
+    })
+    .filter((item): item is { category: Category; average: number } => item.average !== null)
+    .sort((a, b) => a.average - b.average)[0];
+  const reviewQueue = scoredSkills.filter((skill) => skill.score !== undefined && skill.score < 3).sort((a, b) => (a.score ?? 0) - (b.score ?? 0)).slice(0, 4);
 
   const setReview = (patch: Partial<Review>) => update({
     ...state,
     reviews: { ...state.reviews, [state.selectedWeek]: { ...review, ...patch } },
   });
 
-  const toggleTopic = (id: string) => update({
-    ...state,
-    completed: state.completed.includes(id) ? state.completed.filter((item) => item !== id) : [...state.completed, id],
-  });
+  const setSkillScore = (id: string, value: string) => {
+    const mastery = { ...state.mastery };
+    if (value === "") delete mastery[id];
+    else mastery[id] = Number(value);
+    const completed = value === "3" ? [...new Set([...state.completed, id])] : state.completed.filter((item) => item !== id);
+    update({ ...state, mastery, completed });
+  };
 
   const copySubmission = async () => {
-    const prompt = `Hãy đánh giá bài làm tuần ${state.selectedWeek + 1} theo thang 0–3.\n\nChủ đề: ${selected.title}\nBài tập: ${selected.exercise}\nĐầu ra yêu cầu: ${selected.deliverables.join(", ")}\nBest practices cần đối chiếu: ${guide.practices.join("; ")}\nPerformance cần kiểm tra: ${guide.performance.join("; ")}\n\nBài làm của tôi:\n${review.submission || "[Chưa nhập bài làm]"}\n\nHãy trả về: điểm, phần đúng, phần thiếu/sai, trade-off chưa xét, rủi ro production, yêu cầu sửa và bài bổ sung.`;
+    const prompt = `Hãy đánh giá bài làm tuần ${state.selectedWeek + 1}. Bạn là người chấm và feedback, tôi không tự chấm.\n\nChủ đề: ${selected.title}\nKỹ năng cần chấm 0–3:\n${selected.topics.map((topic, index) => `${index + 1}. ${topic}`).join("\n")}\nBài tập: ${selected.exercise}\nĐầu ra yêu cầu: ${selected.deliverables.join(", ")}\nCore essentials: ${coreEssentials[state.selectedWeek].join("; ")}\nBest practices cần đối chiếu: ${guide.practices.join("; ")}\nPerformance cần kiểm tra: ${guide.performance.join("; ")}\n\nBài làm của tôi:\n${review.submission || "[Chưa nhập bài làm]"}\n\nTrả về bảng: kỹ năng | điểm 0–3 | evidence | thiếu/sai | yêu cầu sửa. Sau đó nêu trade-off chưa xét, rủi ro production và bài bổ sung. Chỉ xác nhận hoàn thành khi tất cả kỹ năng đạt 3/3 và không còn yêu cầu sửa.`;
     try {
       await navigator.clipboard.writeText(prompt);
       setNotice("Đã sao chép bài nộp. Dán vào task Codex này để mình đánh giá.");
@@ -520,7 +593,7 @@ export default function Home() {
   };
 
   return (
-    <main id="main-content">
+    <main id="main-content" aria-busy={!loaded}>
       <a className="skip-link" href="#today">Bỏ qua đến nội dung chính</a>
       <header className="hero" id="top">
         <nav className="nav" aria-label="Điều hướng chính">
@@ -547,11 +620,12 @@ export default function Home() {
 
           <aside className="score-card" aria-label="Tiến độ tổng thể">
             <div className="score-top"><span>TIẾN ĐỘ TỔNG</span><strong>{overall}%</strong></div>
-            <div className="progress large"><span style={{ width: `${overall}%` }} /></div>
+            <div className="progress large" role="progressbar" aria-label="Tiến độ tổng thể" aria-valuemin={0} aria-valuemax={100} aria-valuenow={overall}><span style={{ width: `${overall}%` }} /></div>
             <div className="score-grid">
-              <div><strong>{state.completed.length}</strong><span>chủ đề xong</span></div>
+              <div><strong>{masteredTopics}</strong><span>kỹ năng đạt 3/3</span></div>
               <div><strong>{Object.values(state.reviews).filter((item) => item.score === "3").length}</strong><span>tuần đạt chuẩn</span></div>
             </div>
+            <p>Nhóm yếu nhất: <strong>{weakestCategory ? `${weakestCategory.category} · ${weakestCategory.average.toFixed(1)}/3` : "Chưa có điểm"}</strong></p>
             <p>Chuẩn hoàn thành: Codex chấm <strong>3/3</strong> hoặc xác nhận không cần sửa thêm.</p>
           </aside>
         </div>
@@ -562,17 +636,27 @@ export default function Home() {
           <div><p className="kicker">ĐANG HỌC</p><h2>Tuần {state.selectedWeek + 1}: {selected.title}</h2></div>
           <div className="week-score"><span>{weekDone}/{selected.topics.length} chủ đề</span><strong>{weekProgress}%</strong></div>
         </div>
-        <div className="progress"><span style={{ width: `${weekProgress}%` }} /></div>
+        <div className="progress" role="progressbar" aria-label={`Tiến độ tuần ${state.selectedWeek + 1}`} aria-valuemin={0} aria-valuemax={100} aria-valuenow={weekProgress}><span style={{ width: `${weekProgress}%` }} /></div>
+
+        <aside className="review-queue" aria-label="Kỹ năng cần ôn lại">
+          <div><p className="card-label">CẦN ÔN LẠI</p><strong>{reviewQueue.length ? `${reviewQueue.length} kỹ năng yếu nhất` : "Chưa có kỹ năng bị chấm dưới 3"}</strong></div>
+          <ul>{(reviewQueue.length ? reviewQueue : selected.topics.slice(0, 2).map((topic, topicIndex) => ({ topic, weekIndex: state.selectedWeek, score: undefined, category: selected.category }))).map((skill) => <li key={`${skill.weekIndex}-${skill.topic}`}><span>Tuần {skill.weekIndex + 1}</span>{skill.topic}<b>{skill.score ?? "–"}/3</b></li>)}</ul>
+        </aside>
 
         <div className="today-grid">
           <div className="checklist card">
-            <p className="card-label">KIẾN THỨC CẦN CHỨNG MINH</p>
+            <p className="card-label">CODEX CHẤM TỪNG KỸ NĂNG · 0–3</p>
             {selected.topics.map((topic, index) => {
               const id = `w${state.selectedWeek}-t${index}`;
-              return <label className="check-row" key={topic}>
-                <input type="checkbox" checked={state.completed.includes(id)} onChange={() => toggleTopic(id)} />
+              const score = scoreFor(state.selectedWeek, index);
+              return <div className={`skill-row ${score === 3 ? "mastered" : ""}`} key={topic}>
+                <span className="skill-score" aria-hidden="true">{score ?? "–"}</span>
                 <span>{topic}</span>
-              </label>;
+                <label className="sr-only" htmlFor={`${id}-score`}>Điểm Codex cho {topic}</label>
+                <select id={`${id}-score`} value={score ?? ""} onChange={(event) => setSkillScore(id, event.target.value)}>
+                  <option value="">Chưa chấm</option><option value="0">0 — Chưa nắm</option><option value="1">1 — Biết lý thuyết</option><option value="2">2 — Làm được</option><option value="3">3 — Production</option>
+                </select>
+              </div>;
             })}
           </div>
           <div className="assignment card dark-card">
@@ -597,6 +681,7 @@ export default function Home() {
               ["02", "Tình huống thực tế", guide.scenarios],
               ["03", "Best practices", guide.practices],
               ["04", "Performance checklist", guide.performance],
+              ["05", "Core essentials", coreEssentials[state.selectedWeek]],
             ].map(([number, title, items], index) => (
               <details className="study-guide" key={title as string} open={index === 0}>
                 <summary><span>{number as string}</span><strong>{title as string}</strong><i aria-hidden="true">+</i></summary>
@@ -615,7 +700,7 @@ export default function Home() {
         <div className="section-heading align-end">
           <div><p className="kicker">ROADMAP</p><h2>Một dự án, ba góc nhìn.</h2><p className="section-copy">Order Management xuyên suốt Mobile, Backend và Technical Ownership.</p></div>
           <div className="filters" aria-label="Lọc lộ trình">
-            {(["All", "Mobile", "Backend", "Owner", "Product"] as const).map((item) => <button key={item} className={filter === item ? "active" : ""} onClick={() => setFilter(item)}>{item === "All" ? "Tất cả" : item}</button>)}
+            {(["All", "Review", "Mobile", "Backend", "Owner", "Product"] as const).map((item) => <button key={item} className={filter === item ? "active" : ""} aria-pressed={filter === item} onClick={() => setFilter(item)}>{item === "All" ? "Tất cả" : item === "Review" ? "Cần ôn" : item}</button>)}
           </div>
         </div>
 
@@ -624,7 +709,7 @@ export default function Home() {
             const count = week.topics.filter((_, topicIndex) => state.completed.includes(`w${index}-t${topicIndex}`)).length;
             const done = state.reviews[index]?.score === "3";
             return <article className={`week-row ${state.selectedWeek === index ? "selected" : ""}`} key={week.title}>
-              <button className="week-main" onClick={() => update({ ...state, selectedWeek: index })} aria-label={`Chọn tuần ${index + 1}: ${week.title}`}>
+              <button className="week-main" onClick={() => update({ ...state, selectedWeek: index })} aria-label={`Chọn tuần ${index + 1}: ${week.title}`} aria-pressed={state.selectedWeek === index}>
                 <span className="week-number">{String(index + 1).padStart(2, "0")}</span>
                 <span className="week-title"><small>{week.phase} · {week.category}</small><strong>{week.title}</strong><em>{week.focus}</em></span>
                 <span className={`status ${done ? "done" : ""}`}>{done ? "Đạt 3/3" : `${count}/${week.topics.length}`}</span>
@@ -662,7 +747,7 @@ export default function Home() {
             <label htmlFor="feedback">Feedback từ Codex</label>
             <textarea id="feedback" name="feedback" autoComplete="off" rows={4} value={review.feedback} onChange={(event) => setReview({ feedback: event.target.value })} placeholder="Dán nhận xét và yêu cầu sửa vào đây…" />
           </div>
-          <p className="notice" aria-live="polite">{notice}</p>
+          <p className={`notice ${saveStatus}`} aria-live="polite">{notice || (saveStatus === "saving" ? "Đang lưu…" : saveStatus === "saved" ? "Đã lưu vào data/review-progress.md." : saveStatus === "error" ? "Chưa lưu được Markdown. Hãy thay đổi lại một mục để thử lại." : "")}</p>
         </div>
       </section>
 
