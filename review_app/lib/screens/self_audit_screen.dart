@@ -24,6 +24,7 @@ class SelfAuditScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -31,33 +32,34 @@ class SelfAuditScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        '📝 Tự Đánh Giá Năng Lực Đầu Vào (Baseline Self-Audit)',
+                        'Baseline Self-Audit Scorecard',
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
+                              letterSpacing: -0.3,
                             ),
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
                       const Text(
-                        'Đánh giá thực chất dựa trên bằng chứng code/incident đã làm. Thang 0-4.',
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                        'Honest evidence-based rating (Scale 0 - 4) across 11 core competencies.',
+                        style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
                       ),
                     ],
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
-                      color: AppColors.accentAmber.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AppColors.accentAmber.withValues(alpha: 0.4)),
+                      color: AppColors.cardSurface,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.border),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.star_rounded, color: AppColors.accentAmber, size: 20),
+                        const Icon(Icons.star_rounded, color: AppColors.accentAmber, size: 18),
                         const SizedBox(width: 8),
                         Text(
-                          'ĐTB: ${state.averageAuditScore.toStringAsFixed(1)} / 4.0',
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.accentAmber, fontSize: 15),
+                          'Average: ${state.averageAuditScore.toStringAsFixed(1)} / 4.0',
+                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14),
                         ),
                       ],
                     ),
@@ -66,11 +68,11 @@ class SelfAuditScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // Rating Scale Legend Box
+              // Rating Legend Bar
               _buildRatingLegend(),
-              const SizedBox(height: 28),
+              const SizedBox(height: 24),
 
-              // Audit Cards List
+              // Skill Cards List
               ...skills.map((skill) => _buildSkillAuditCard(context, skill)),
             ],
           ),
@@ -81,18 +83,18 @@ class SelfAuditScreen extends StatelessWidget {
 
   Widget _buildRatingLegend() {
     final levels = [
-      {'level': '0', 'desc': 'Chưa biết / Chưa từng làm'},
-      {'level': '1', 'desc': 'Biết khái niệm'},
-      {'level': '2', 'desc': 'Có thể tự triển khai'},
-      {'level': '3', 'desc': 'Có thể debug & tối ưu prod'},
-      {'level': '4', 'desc': 'Thiết kế, review & hướng dẫn'},
+      {'level': '0', 'desc': 'Unaware / No experience'},
+      {'level': '1', 'desc': 'Conceptual knowledge'},
+      {'level': '2', 'desc': 'Can implement independently'},
+      {'level': '3', 'desc': 'Debug & optimize in prod'},
+      {'level': '4', 'desc': 'Architect & guide team'},
     ];
 
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
+        color: AppColors.cardSurface,
+        borderRadius: BorderRadius.circular(10),
         border: Border.all(color: AppColors.border),
       ),
       child: Row(
@@ -101,22 +103,23 @@ class SelfAuditScreen extends StatelessWidget {
           return Row(
             children: [
               Container(
-                width: 22,
-                height: 22,
+                width: 20,
+                height: 20,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: AppColors.primaryCyan.withValues(alpha: 0.2),
+                  color: AppColors.surface,
                   shape: BoxShape.circle,
+                  border: Border.all(color: AppColors.borderLight),
                 ),
                 child: Text(
                   lvl['level']!,
-                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primaryCyan, fontSize: 11),
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.textSecondary, fontSize: 10),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 6),
               Text(
                 lvl['desc']!,
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                style: const TextStyle(color: AppColors.textMuted, fontSize: 11),
               ),
             ],
           );
@@ -127,11 +130,11 @@ class SelfAuditScreen extends StatelessWidget {
 
   Widget _buildSkillAuditCard(BuildContext context, AuditSkill skill) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
         color: AppColors.cardSurface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.border),
       ),
       child: Row(
@@ -143,60 +146,61 @@ class SelfAuditScreen extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: AppColors.primaryCyan.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(6),
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: AppColors.border),
                       ),
                       child: Text(
                         skill.category,
-                        style: const TextStyle(color: AppColors.primaryCyan, fontSize: 11, fontWeight: FontWeight.bold),
+                        style: const TextStyle(color: AppColors.textMuted, fontSize: 10, fontWeight: FontWeight.bold),
                       ),
                     ),
                     const SizedBox(width: 10),
                     Text(
                       skill.title,
-                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 15),
+                      style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14),
                     ),
                   ],
                 ),
                 const SizedBox(height: 6),
                 Text(
                   skill.description,
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
                 ),
               ],
             ),
           ),
           const SizedBox(width: 20),
 
-          // Rating score buttons (0 to 4)
+          // Rating score pills (0 to 4)
           Row(
             children: List.generate(5, (scoreValue) {
               final isSelected = skill.score == scoreValue;
               final color = scoreValue >= 3
-                  ? AppColors.accentEmerald
-                  : (scoreValue >= 2 ? AppColors.primaryCyan : AppColors.accentAmber);
+                  ? AppColors.springGreen
+                  : (scoreValue >= 2 ? AppColors.flutterBlue : AppColors.accentAmber);
 
               return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                padding: const EdgeInsets.symmetric(horizontal: 3.0),
                 child: InkWell(
                   onTap: () {
                     context.read<RoadmapBloc>().add(
                           UpdateAuditScore(skill.id, scoreValue),
                         );
                   },
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(6),
                   child: Container(
-                    width: 38,
-                    height: 38,
+                    width: 34,
+                    height: 34,
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
                       color: isSelected ? color : AppColors.surface,
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(6),
                       border: Border.all(
                         color: isSelected ? color : AppColors.border,
-                        width: isSelected ? 2 : 1,
+                        width: isSelected ? 1.5 : 1,
                       ),
                     ),
                     child: Text(
@@ -204,7 +208,7 @@ class SelfAuditScreen extends StatelessWidget {
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: isSelected ? Colors.black : AppColors.textSecondary,
-                        fontSize: 14,
+                        fontSize: 13,
                       ),
                     ),
                   ),

@@ -1,28 +1,27 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  // Primary Dark Palette
-  static const Color background = Color(0xFF0A0E17);
-  static const Color surface = Color(0xFF121826);
-  static const Color cardSurface = Color(0xFF1A2336);
-  static const Color cardSurfaceHover = Color(0xFF232F47);
-  static const Color border = Color(0xFF2A364F);
-  static const Color borderLight = Color(0xFF3B4C6F);
+  // Modern Developer Obsidian & Zinc Palette (Linear / Vercel Aesthetic)
+  static const Color background = Color(0xFF09090B);
+  static const Color surface = Color(0xFF121215);
+  static const Color cardSurface = Color(0xFF18181B);
+  static const Color cardSurfaceHover = Color(0xFF27272A);
+  static const Color border = Color(0xFF27272A);
+  static const Color borderLight = Color(0xFF3F3F46);
 
-  // Accent Colors
-  static const Color primaryCyan = Color(0xFF06B6D4);
-  static const Color primaryPurple = Color(0xFF8B5CF6);
-  static const Color primaryBlue = Color(0xFF3B82F6);
+  // Refined Accents (Restrained & Purposeful)
+  static const Color primaryIndigo = Color(0xFF6366F1);
+  static const Color primaryCyan = Color(0xFF0EA5E9);
+  static const Color springGreen = Color(0xFF10B981);
+  static const Color springGreenBg = Color(0xFF064E3B);
+  static const Color flutterBlue = Color(0xFF38BDF8);
+  static const Color flutterBlueBg = Color(0xFF075985);
   static const Color accentAmber = Color(0xFFF59E0B);
-  static const Color accentEmerald = Color(0xFF10B981);
-  static const Color accentRose = Color(0xFFEF4444);
+  static const Color accentPurple = Color(0xFFA855F7);
+  static const Color accentRose = Color(0xFFF43F5E);
 
-  // Text Colors
-  static const Color textPrimary = Color(0xFFF1F5F9);
-  static const Color textSecondary = Color(0xFF94A3B8);
-  static const Color textMuted = Color(0xFF64748B);
-
-  // Roadmap Specific Colors
-  static const Color springGreen = Color(0xFF22C55E);
-  static const Color flutterBlue = Color(0xFF0284C7);
+  // Monochromatic Text Hierarchy
+  static const Color textPrimary = Color(0xFFFAFAFA);
+  static const Color textSecondary = Color(0xFFA1A1AA);
+  static const Color textMuted = Color(0xFF71717A);
 }

@@ -34,17 +34,17 @@ class _RoadmapExplorerScreenState extends State<RoadmapExplorerScreen> {
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Left Week Timeline List (1/3 width)
+            // Left Timeline Sidebar (300px width)
             SizedBox(
-              width: 340,
+              width: 300,
               child: Container(
                 decoration: const BoxDecoration(
                   border: Border(right: BorderSide(color: AppColors.border)),
                 ),
                 child: ListView.separated(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.all(12),
                   itemCount: weeks.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 10),
+                  separatorBuilder: (context, index) => const SizedBox(height: 6),
                   itemBuilder: (context, index) {
                     final item = weeks[index];
                     final isSelected = item.weekNumber == _selectedWeekNumber;
@@ -54,7 +54,7 @@ class _RoadmapExplorerScreenState extends State<RoadmapExplorerScreen> {
               ),
             ),
 
-            // Right Week Detail Panel (2/3 width)
+            // Right Detail Content Panel
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(28),
@@ -77,44 +77,49 @@ class _RoadmapExplorerScreenState extends State<RoadmapExplorerScreen> {
           _selectedWeekNumber = item.weekNumber;
         });
       },
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(10),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(16),
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
-          color: isSelected ? activeColor.withValues(alpha: 0.15) : AppColors.cardSurface,
-          borderRadius: BorderRadius.circular(14),
+          color: isSelected ? AppColors.cardSurfaceHover : AppColors.cardSurface,
+          borderRadius: BorderRadius.circular(10),
           border: Border.all(
-            color: isSelected ? activeColor : (item.isCompleted ? AppColors.accentEmerald.withValues(alpha: 0.5) : AppColors.border),
-            width: isSelected ? 2 : 1,
+            color: isSelected ? activeColor : (item.isCompleted ? AppColors.springGreen.withValues(alpha: 0.4) : AppColors.border),
+            width: isSelected ? 1.5 : 1,
           ),
         ),
         child: Row(
           children: [
-            // Checkbox Completed Button
-            IconButton(
-              icon: Icon(
-                item.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
-                color: item.isCompleted ? AppColors.accentEmerald : AppColors.textMuted,
-                size: 22,
-              ),
-              onPressed: () {
+            // Status Checkbox Icon
+            InkWell(
+              onTap: () {
                 context.read<RoadmapBloc>().add(
                       ToggleWeekCompleted(item.roadmapType, item.weekNumber),
                     );
               },
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(2.0),
+                child: Icon(
+                  item.isCompleted ? Icons.check_circle_rounded : Icons.radio_button_unchecked_rounded,
+                  color: item.isCompleted ? AppColors.springGreen : AppColors.textMuted,
+                  size: 18,
+                ),
+              ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Tuần ${item.weekNumber}',
+                    'WEEK ${item.weekNumber.toString().padLeft(2, '0')}',
                     style: TextStyle(
-                      fontSize: 12,
+                      fontSize: 10,
                       fontWeight: FontWeight.bold,
                       color: isSelected ? activeColor : AppColors.textMuted,
+                      letterSpacing: 0.5,
                     ),
                   ),
                   const SizedBox(height: 2),
@@ -123,7 +128,7 @@ class _RoadmapExplorerScreenState extends State<RoadmapExplorerScreen> {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                      fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                       color: Colors.white,
                       fontSize: 13,
                     ),
@@ -133,13 +138,13 @@ class _RoadmapExplorerScreenState extends State<RoadmapExplorerScreen> {
             ),
             if (item.incidentDrill != null)
               Container(
-                margin: const EdgeInsets.only(left: 4),
-                padding: const EdgeInsets.all(4),
+                margin: const EdgeInsets.only(left: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryPurple.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(6),
+                  color: AppColors.primaryIndigo.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(4),
                 ),
-                child: const Icon(Icons.flash_on_rounded, color: AppColors.primaryPurple, size: 14),
+                child: const Text('DRILL', style: TextStyle(color: AppColors.primaryIndigo, fontSize: 9, fontWeight: FontWeight.bold)),
               ),
           ],
         ),
@@ -154,31 +159,53 @@ class _RoadmapExplorerScreenState extends State<RoadmapExplorerScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header info
+        // Header Section
         Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: activeColor.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Text(
-                'TUẦN ${week.weekNumber}',
-                style: TextStyle(color: activeColor, fontWeight: FontWeight.bold, fontSize: 14),
-              ),
-            ),
-            const SizedBox(width: 16),
             Expanded(
-              child: Text(
-                week.title,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: activeColor.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          'WEEK ${week.weekNumber.toString().padLeft(2, '0')}',
+                          style: TextStyle(color: activeColor, fontWeight: FontWeight.bold, fontSize: 11),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Text(
+                        isSpring ? 'Spring Backend' : 'Mobile Flutter',
+                        style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    week.title,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: -0.3,
+                        ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    week.subtitle,
+                    style: const TextStyle(color: AppColors.textSecondary, fontSize: 14),
+                  ),
+                ],
               ),
             ),
-            ElevatedButton.icon(
+            const SizedBox(width: 20),
+            OutlinedButton.icon(
               onPressed: () {
                 context.read<RoadmapBloc>().add(
                       ToggleWeekCompleted(week.roadmapType, week.weekNumber),
@@ -186,28 +213,34 @@ class _RoadmapExplorerScreenState extends State<RoadmapExplorerScreen> {
               },
               icon: Icon(
                 week.isCompleted ? Icons.check_circle_rounded : Icons.circle_outlined,
-                size: 18,
+                size: 16,
+                color: week.isCompleted ? AppColors.springGreen : Colors.white,
               ),
-              label: Text(week.isCompleted ? 'Đã Hoàn Thành' : 'Đánh Dấu Hoàn Thành'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: week.isCompleted ? AppColors.accentEmerald : AppColors.cardSurface,
-                foregroundColor: week.isCompleted ? Colors.black : Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              label: Text(
+                week.isCompleted ? 'Completed' : 'Mark Completed',
+                style: TextStyle(
+                  color: week.isCompleted ? AppColors.springGreen : Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 13,
+                ),
+              ),
+              style: OutlinedButton.styleFrom(
+                backgroundColor: week.isCompleted ? AppColors.springGreenBg.withValues(alpha: 0.2) : AppColors.cardSurface,
+                side: BorderSide(
+                  color: week.isCompleted ? AppColors.springGreen : AppColors.borderLight,
+                ),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 8),
-        Text(
-          week.subtitle,
-          style: const TextStyle(color: AppColors.textSecondary, fontSize: 15),
-        ),
-        const SizedBox(height: 28),
+        const SizedBox(height: 24),
 
-        // Section 1: Review Topics
-        _buildDetailCard(
-          title: '📚 Kiến Thức Cần Review',
-          color: AppColors.primaryBlue,
+        // Section 1: Review Topics Card
+        _buildSectionCard(
+          title: 'Review Topics & Core Concepts',
+          icon: Icons.auto_stories_outlined,
+          iconColor: AppColors.primaryCyan,
           child: Column(
             children: week.reviewTopics
                 .map((topic) => Padding(
@@ -215,12 +248,20 @@ class _RoadmapExplorerScreenState extends State<RoadmapExplorerScreen> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.arrow_right_rounded, color: AppColors.primaryBlue, size: 20),
-                          const SizedBox(width: 8),
+                          Container(
+                            margin: const EdgeInsets.only(top: 6),
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              color: AppColors.primaryCyan,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
                           Expanded(
                             child: Text(
                               topic,
-                              style: const TextStyle(fontSize: 14, height: 1.4, color: AppColors.textPrimary),
+                              style: const TextStyle(fontSize: 14, height: 1.5, color: AppColors.textPrimary),
                             ),
                           ),
                         ],
@@ -231,10 +272,11 @@ class _RoadmapExplorerScreenState extends State<RoadmapExplorerScreen> {
         ),
         const SizedBox(height: 20),
 
-        // Section 2: Practices
-        _buildDetailCard(
-          title: '⚡ Bài Tập Thực Hành',
-          color: AppColors.accentAmber,
+        // Section 2: Practical Exercises Card
+        _buildSectionCard(
+          title: 'Practical Coding Exercises',
+          icon: Icons.code_rounded,
+          iconColor: AppColors.accentAmber,
           child: Column(
             children: week.practices
                 .map((prac) => Padding(
@@ -242,12 +284,12 @@ class _RoadmapExplorerScreenState extends State<RoadmapExplorerScreen> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Icon(Icons.code_rounded, color: AppColors.accentAmber, size: 18),
+                          const Icon(Icons.terminal_rounded, color: AppColors.accentAmber, size: 16),
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
                               prac,
-                              style: const TextStyle(fontSize: 14, height: 1.4, color: AppColors.textPrimary),
+                              style: const TextStyle(fontSize: 13, height: 1.4, color: AppColors.textPrimary),
                             ),
                           ),
                         ],
@@ -258,37 +300,44 @@ class _RoadmapExplorerScreenState extends State<RoadmapExplorerScreen> {
         ),
         const SizedBox(height: 20),
 
-        // Section 3: Incident Drill Shortcut
+        // Section 3: Incident Drill Shortcut (If exists)
         if (week.incidentDrill != null) ...[
           _buildIncidentShortcutCard(context, week.incidentDrill!),
           const SizedBox(height: 20),
         ],
 
-        // Section 4: Deliverables & Evidence Input
-        _buildDeliverableCard(context, week),
+        // Section 4: Deliverables & Evidence Input Card
+        _buildDeliverablesCard(context, week),
       ],
     );
   }
 
-  Widget _buildDetailCard({
+  Widget _buildSectionCard({
     required String title,
-    required Color color,
+    required IconData icon,
+    required Color iconColor,
     required Widget child,
   }) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         color: AppColors.cardSurface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: color),
+          Row(
+            children: [
+              Icon(icon, color: iconColor, size: 18),
+              const SizedBox(width: 10),
+              Text(
+                title,
+                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+            ],
           ),
           const SizedBox(height: 16),
           child,
@@ -304,114 +353,126 @@ class _RoadmapExplorerScreenState extends State<RoadmapExplorerScreen> {
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.primaryPurple.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.primaryPurple.withValues(alpha: 0.4)),
+        color: AppColors.cardSurface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppColors.primaryIndigo.withValues(alpha: 0.4)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Row(
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.primaryIndigo.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: const Icon(Icons.warning_amber_rounded, color: AppColors.primaryIndigo, size: 20),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
                   children: [
-                    const Icon(Icons.warning_amber_rounded, color: AppColors.primaryPurple, size: 22),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        '🔥 Tình Huống Sự Cố: ${incident.title}',
-                        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                    Text(
+                      'Incidents Drill: ${incident.title}',
+                      style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
+                    const SizedBox(width: 10),
+                    if (isSolved)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.springGreen.withValues(alpha: 0.2),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text('SOLVED', style: TextStyle(color: AppColors.springGreen, fontSize: 10, fontWeight: FontWeight.bold)),
+                      ),
                   ],
                 ),
-              ),
-              if (isSolved)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.accentEmerald.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: const Text(
-                    'Đã Giải Quuyết',
-                    style: TextStyle(color: AppColors.accentEmerald, fontSize: 12, fontWeight: FontWeight.bold),
-                  ),
+                const SizedBox(height: 4),
+                Text(
+                  incident.symptom,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: AppColors.textMuted, fontSize: 12),
                 ),
-            ],
+              ],
+            ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            incident.symptom,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
-          ),
-          const SizedBox(height: 14),
-          ElevatedButton.icon(
+          const SizedBox(width: 14),
+          OutlinedButton(
             onPressed: () {
               context.read<RoadmapBloc>().add(const ChangeActiveTab(2)); // Go to Incident Simulator
             },
-            icon: const Icon(Icons.play_arrow_rounded, size: 18),
-            label: const Text('Mở Trình Giải Đố Sự Cố'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryPurple,
+            style: OutlinedButton.styleFrom(
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              side: const BorderSide(color: AppColors.borderLight),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
+            child: const Text('Launch Drill', style: TextStyle(fontSize: 12)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildDeliverableCard(BuildContext context, WeekItem week) {
+  Widget _buildDeliverablesCard(BuildContext context, WeekItem week) {
     final prController = TextEditingController(text: week.prLink);
     final notesController = TextEditingController(text: week.userNotes);
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         color: AppColors.cardSurface,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            '📦 Bằng Chứng Hoàn Thành (Deliverables)',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primaryCyan),
+          const Row(
+            children: [
+              Icon(Icons.inventory_2_outlined, color: AppColors.flutterBlue, size: 18),
+              SizedBox(width: 10),
+              Text(
+                'Week Deliverables & Artifact Evidence',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
           Wrap(
-            spacing: 8,
-            runSpacing: 8,
+            spacing: 6,
+            runSpacing: 6,
             children: week.deliverables.map((deliv) {
-              return Chip(
-                label: Text(deliv, style: const TextStyle(fontSize: 12, color: AppColors.textPrimary)),
-                backgroundColor: AppColors.surface,
-                side: const BorderSide(color: AppColors.border),
+              return Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                decoration: BoxDecoration(
+                  color: AppColors.surface,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: Text(deliv, style: const TextStyle(fontSize: 11, color: AppColors.textSecondary)),
               );
             }).toList(),
           ),
           const SizedBox(height: 20),
 
-          // PR Link Input
+          // PR Link TextField
           TextField(
             controller: prController,
             style: const TextStyle(color: Colors.white, fontSize: 13),
             decoration: InputDecoration(
-              labelText: 'Link Pull Request / GitHub Repository',
-              labelStyle: const TextStyle(color: AppColors.textMuted),
-              prefixIcon: const Icon(Icons.link_rounded, color: AppColors.primaryCyan),
+              hintText: 'https://github.com/org/repo/pull/123',
+              hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 13),
+              labelText: 'Pull Request / Repository Link',
+              labelStyle: const TextStyle(color: AppColors.textMuted, fontSize: 12),
+              prefixIcon: const Icon(Icons.link_rounded, color: AppColors.textMuted, size: 18),
               suffixIcon: week.prLink.isNotEmpty
                   ? IconButton(
-                      icon: const Icon(Icons.open_in_new_rounded, size: 18),
+                      icon: const Icon(Icons.open_in_new_rounded, size: 16, color: AppColors.flutterBlue),
                       onPressed: () async {
                         final uri = Uri.parse(week.prLink);
                         if (await canLaunchUrl(uri)) {
@@ -422,25 +483,43 @@ class _RoadmapExplorerScreenState extends State<RoadmapExplorerScreen> {
                   : null,
               filled: true,
               fillColor: AppColors.surface,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: AppColors.border),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: AppColors.border),
+              ),
             ),
           ),
           const SizedBox(height: 12),
 
-          // Notes / ADR Input
+          // Notes / ADR TextField
           TextField(
             controller: notesController,
             maxLines: 3,
             style: const TextStyle(color: Colors.white, fontSize: 13),
             decoration: InputDecoration(
-              labelText: 'Ghi chú học tập / Architecture Decision Record (ADR)',
-              labelStyle: const TextStyle(color: AppColors.textMuted),
+              hintText: 'Document key architectural tradeoffs and takeaways...',
+              hintStyle: const TextStyle(color: AppColors.textMuted, fontSize: 13),
+              labelText: 'Architecture Decision Record (ADR) & Notes',
+              labelStyle: const TextStyle(color: AppColors.textMuted, fontSize: 12),
               filled: true,
               fillColor: AppColors.surface,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+              contentPadding: const EdgeInsets.all(14),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: AppColors.border),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: AppColors.border),
+              ),
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
 
           ElevatedButton.icon(
             onPressed: () {
@@ -453,15 +532,16 @@ class _RoadmapExplorerScreenState extends State<RoadmapExplorerScreen> {
                     ),
                   );
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Đã lưu bằng chứng bài tập!')),
+                const SnackBar(content: Text('Deliverables saved successfully!')),
               );
             },
-            icon: const Icon(Icons.save_rounded, size: 18),
-            label: const Text('Lưu Bằng Chứng'),
+            icon: const Icon(Icons.save_outlined, size: 16),
+            label: const Text('Save Deliverables'),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primaryCyan,
-              foregroundColor: Colors.black,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              backgroundColor: AppColors.primaryIndigo,
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
           ),
         ],

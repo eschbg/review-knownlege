@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../bloc/roadmap_bloc.dart';
-import '../bloc/roadmap_state.dart';
 import '../core/constants/app_colors.dart';
+import '../data/concept_mappings_data.dart';
 import '../models/roadmap_models.dart';
 
 class ConceptMappingScreen extends StatelessWidget {
@@ -10,196 +8,220 @@ class ConceptMappingScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<RoadmapBloc, RoadmapState>(
-      builder: (context, state) {
-        if (state is! RoadmapLoaded) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    final mappings = ConceptMappingsData.getMappings();
 
-        final mappings = state.conceptMappings;
-
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(28),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                '🔀 Cầu Nối Tư Duy Kiến Thức (Mobile ↔ Backend Mapping)',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Cross-Domain Concept Matrix',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: -0.3,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  const Text(
+                    'Technical Mental Model Bridge: Mobile Flutter ↔ Spring Backend',
+                    style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Tận dụng kinh nghiệm 4 năm Mobile để ánh xạ nhanh sang tư duy thiết kế và vận hành backend Spring Boot.',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.cardSurface,
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AppColors.border),
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.compare_arrows_rounded, color: AppColors.flutterBlue, size: 16),
+                    SizedBox(width: 6),
+                    Text('5 Core Paradigms', style: TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
+                  ],
+                ),
               ),
-              const SizedBox(height: 24),
-              ...mappings.map((mapping) => _buildMappingCard(context, mapping)),
             ],
           ),
-        );
-      },
+          const SizedBox(height: 24),
+
+          // Mapping Cards List
+          ...mappings.map((mapping) => _buildMappingCard(context, mapping)),
+        ],
+      ),
     );
   }
 
   Widget _buildMappingCard(BuildContext context, ConceptMapping mapping) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 24),
-      padding: const EdgeInsets.all(24),
+      margin: const EdgeInsets.only(bottom: 20),
       decoration: BoxDecoration(
         color: AppColors.cardSurface,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryCyan.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  mapping.topicName,
-                  style: const TextStyle(color: AppColors.primaryCyan, fontWeight: FontWeight.bold, fontSize: 13),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-
-          // Side-by-side comparison row
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Flutter Side
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.flutterBlue.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.flutterBlue.withValues(alpha: 0.3)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Row(
-                        children: [
-                          Icon(Icons.phone_iphone_rounded, color: AppColors.flutterBlue, size: 18),
-                          SizedBox(width: 8),
-                          Text(
-                            'Mobile Flutter Concept',
-                            style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.flutterBlue, fontSize: 14),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        mapping.flutterConcept,
-                        style: const TextStyle(color: Colors.white, fontSize: 13, height: 1.4),
-                      ),
-                      const SizedBox(height: 12),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.4),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          mapping.flutterSnippet,
-                          style: const TextStyle(fontFamily: 'monospace', color: AppColors.flutterBlue, fontSize: 11),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.only(top: 40.0),
-                  child: Icon(Icons.swap_horiz_rounded, color: AppColors.textMuted, size: 28),
-                ),
-              ),
-              const SizedBox(width: 16),
-              // Spring Side
-              Expanded(
-                child: Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.springGreen.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: AppColors.springGreen.withValues(alpha: 0.3)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Row(
-                        children: [
-                          Icon(Icons.dns_rounded, color: AppColors.springGreen, size: 18),
-                          SizedBox(width: 8),
-                          Text(
-                            'Backend Spring Concept',
-                            style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.springGreen, fontSize: 14),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        mapping.springConcept,
-                        style: const TextStyle(color: Colors.white, fontSize: 13, height: 1.4),
-                      ),
-                      const SizedBox(height: 12),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.black.withValues(alpha: 0.4),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          mapping.springSnippet,
-                          style: const TextStyle(fontFamily: 'monospace', color: AppColors.springGreen, fontSize: 11),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Key Insight Box
+          // Topic Header
           Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: AppColors.accentAmber.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.accentAmber.withValues(alpha: 0.3)),
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+            decoration: const BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(12)),
+              border: Border(bottom: BorderSide(color: AppColors.border)),
             ),
             child: Row(
+              children: [
+                const Icon(Icons.hub_outlined, color: AppColors.primaryIndigo, size: 18),
+                const SizedBox(width: 10),
+                Text(
+                  mapping.topicName,
+                  style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.lightbulb_rounded, color: AppColors.accentAmber, size: 20),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    mapping.keyInsight,
-                    style: const TextStyle(color: AppColors.textPrimary, fontSize: 13, height: 1.4),
+                // Side-by-side Paradigm Comparison Grid
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Flutter Paradigm Box
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.flutterBlue.withValues(alpha: 0.3)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Row(
+                              children: [
+                                Icon(Icons.phone_android_rounded, color: AppColors.flutterBlue, size: 16),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Flutter / Mobile Paradigm',
+                                  style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.flutterBlue, fontSize: 12),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              mapping.flutterConcept,
+                              style: const TextStyle(color: Colors.white, fontSize: 13, height: 1.4),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildCodeBlock(mapping.flutterSnippet, AppColors.flutterBlue),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+
+                    // Spring Paradigm Box
+                    Expanded(
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: AppColors.surface,
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: AppColors.springGreen.withValues(alpha: 0.3)),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Row(
+                              children: [
+                                Icon(Icons.dns_rounded, color: AppColors.springGreen, size: 16),
+                                SizedBox(width: 6),
+                                Text(
+                                  'Spring Backend Paradigm',
+                                  style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.springGreen, fontSize: 12),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              mapping.springConcept,
+                              style: const TextStyle(color: Colors.white, fontSize: 13, height: 1.4),
+                            ),
+                            const SizedBox(height: 12),
+                            _buildCodeBlock(mapping.springSnippet, AppColors.springGreen),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+
+                // Key Insight Box
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.surface,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.border),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.lightbulb_outline_rounded, color: AppColors.accentAmber, size: 18),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          mapping.keyInsight,
+                          style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, height: 1.4),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCodeBlock(String code, Color accentColor) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0C0C0E),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        code,
+        style: TextStyle(
+          fontFamily: 'monospace',
+          color: accentColor,
+          fontSize: 11,
+          height: 1.4,
+        ),
       ),
     );
   }

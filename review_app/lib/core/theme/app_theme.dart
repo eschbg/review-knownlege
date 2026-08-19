@@ -7,12 +7,12 @@ class AppTheme {
     return ThemeData.dark(useMaterial3: true).copyWith(
       scaffoldBackgroundColor: AppColors.background,
       colorScheme: const ColorScheme.dark(
-        primary: AppColors.primaryCyan,
-        secondary: AppColors.primaryPurple,
+        primary: AppColors.primaryIndigo,
+        secondary: AppColors.primaryCyan,
         surface: AppColors.surface,
         error: AppColors.accentRose,
       ),
-      textTheme: GoogleFonts.interTextTheme(
+      textTheme: GoogleFonts.plusJakartaSansTextTheme(
         ThemeData.dark().textTheme,
       ).apply(
         bodyColor: AppColors.textPrimary,
@@ -22,7 +22,7 @@ class AppTheme {
         color: AppColors.cardSurface,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           side: const BorderSide(color: AppColors.border, width: 1),
         ),
       ),
@@ -33,6 +33,12 @@ class AppTheme {
       appBarTheme: const AppBarTheme(
         backgroundColor: AppColors.surface,
         elevation: 0,
+      ),
+      chipTheme: ChipThemeData(
+        backgroundColor: AppColors.cardSurface,
+        side: const BorderSide(color: AppColors.border),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        labelStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 12),
       ),
     );
   }

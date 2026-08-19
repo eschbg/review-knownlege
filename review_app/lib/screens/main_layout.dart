@@ -24,9 +24,13 @@ class MainLayout extends StatelessWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  CircularProgressIndicator(color: AppColors.primaryCyan),
+                  SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primaryIndigo),
+                  ),
                   SizedBox(height: 16),
-                  Text('Đang khởi tạo dữ liệu Roadmap...', style: TextStyle(color: AppColors.textSecondary)),
+                  Text('Loading Mastery Workspace...', style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
                 ],
               ),
             ),
@@ -46,17 +50,17 @@ class MainLayout extends StatelessWidget {
         return Scaffold(
           body: Row(
             children: [
-              // Left Permanent Navigation Sidebar
+              // Sleek Sidebar (Linear / Vercel layout)
               _buildSidebar(context, loadedState),
 
-              // Main Right Content Panel
+              // Main Workspace Panel
               Expanded(
                 child: Column(
                   children: [
-                    // Top App Header Bar
+                    // Top App Bar
                     _buildHeader(context, loadedState),
 
-                    // Active Tab Screen View
+                    // Content View
                     Expanded(
                       child: _buildActiveTabContent(loadedState.activeTabIndex),
                     ),
@@ -71,117 +75,96 @@ class MainLayout extends StatelessWidget {
   }
 
   Widget _buildSidebar(BuildContext context, RoadmapLoaded state) {
-    final navItems = [
-      {'icon': Icons.dashboard_rounded, 'label': 'Dashboard Overview'},
-      {'icon': Icons.map_rounded, 'label': 'Roadmap Explorer'},
-      {'icon': Icons.health_and_safety_rounded, 'label': 'Incident Simulator'},
-      {'icon': Icons.compare_arrows_rounded, 'label': 'Mobile ↔ Backend'},
-      {'icon': Icons.fact_check_rounded, 'label': 'Self-Audit Scorecard'},
-    ];
-
     return Container(
-      width: 260,
+      width: 240,
       decoration: const BoxDecoration(
         color: AppColors.surface,
         border: Border(right: BorderSide(color: AppColors.border)),
       ),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // App Logo Header
+          // Workspace Header / Logo
           Container(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  width: 28,
+                  height: 28,
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [AppColors.primaryCyan, AppColors.primaryPurple],
+                    color: AppColors.primaryIndigo.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.primaryIndigo.withValues(alpha: 0.4)),
+                  ),
+                  child: const Center(
+                    child: Text(
+                      'M',
+                      style: TextStyle(color: AppColors.primaryIndigo, fontWeight: FontWeight.bold, fontSize: 14),
                     ),
-                    borderRadius: BorderRadius.circular(12),
                   ),
-                  child: const Icon(Icons.auto_stories_rounded, color: Colors.white, size: 24),
                 ),
-                const SizedBox(width: 14),
-                const Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Tech Mastery',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white),
-                      ),
-                      Text(
-                        'Review Hub',
-                        style: TextStyle(fontSize: 12, color: AppColors.primaryCyan, fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
+                const SizedBox(width: 10),
+                const Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Mastery Hub',
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white, letterSpacing: -0.2),
+                    ),
+                    Text(
+                      'Senior Review Workspace',
+                      style: TextStyle(fontSize: 11, color: AppColors.textMuted),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
           const Divider(height: 1),
+          const SizedBox(height: 12),
 
-          // Navigation Links
-          Expanded(
-            child: ListView.separated(
-              padding: const EdgeInsets.all(16),
-              itemCount: navItems.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 6),
-              itemBuilder: (context, index) {
-                final item = navItems[index];
-                final isSelected = state.activeTabIndex == index;
+          // Group 1: OVERVIEW & LEARNING
+          _buildNavGroupHeader('LEARNING & DRILLS'),
+          _buildNavItem(context, state, index: 0, icon: Icons.grid_view_rounded, label: 'Overview Dashboard'),
+          _buildNavItem(context, state, index: 1, icon: Icons.format_list_bulleted_rounded, label: '12-Week Roadmap'),
+          _buildNavItem(context, state, index: 2, icon: Icons.terminal_rounded, label: 'Incident Drills'),
 
-                return InkWell(
-                  onTap: () {
-                    context.read<RoadmapBloc>().add(ChangeActiveTab(index));
-                  },
-                  borderRadius: BorderRadius.circular(12),
-                  child: AnimatedContainer(
-                    duration: const Duration(milliseconds: 150),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                    decoration: BoxDecoration(
-                      color: isSelected ? AppColors.primaryCyan.withValues(alpha: 0.15) : Colors.transparent,
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: isSelected ? AppColors.primaryCyan.withValues(alpha: 0.5) : Colors.transparent,
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          item['icon'] as IconData,
-                          color: isSelected ? AppColors.primaryCyan : AppColors.textMuted,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 14),
-                        Text(
-                          item['label'] as String,
-                          style: TextStyle(
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                            color: isSelected ? Colors.white : AppColors.textSecondary,
-                            fontSize: 14,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
+          const SizedBox(height: 16),
+          // Group 2: CROSS DOMAIN & AUDIT
+          _buildNavGroupHeader('CROSS-DOMAIN & AUDIT'),
+          _buildNavItem(context, state, index: 3, icon: Icons.swap_horiz_rounded, label: 'Mobile ↔ Backend'),
+          _buildNavItem(context, state, index: 4, icon: Icons.fact_check_outlined, label: 'Self-Audit Matrix'),
 
-          // Bottom Version Badge
+          const Spacer(),
+
+          // Bottom Active Mode Footer
           Container(
-            padding: const EdgeInsets.all(16),
+            margin: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: AppColors.cardSurface,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.border),
+            ),
             child: Row(
               children: [
-                const Icon(Icons.info_outline_rounded, size: 16, color: AppColors.textMuted),
-                const SizedBox(width: 8),
-                Text(
-                  'v1.0.0 • Flutter Web',
-                  style: TextStyle(color: AppColors.textMuted, fontSize: 11),
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
+                    color: state.currentRoadmapType == RoadmapType.springBackend
+                        ? AppColors.springGreen
+                        : AppColors.flutterBlue,
+                    shape: BoxShape.circle,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text(
+                    state.currentRoadmapType.displayName,
+                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.white),
+                  ),
                 ),
               ],
             ),
@@ -191,12 +174,77 @@ class MainLayout extends StatelessWidget {
     );
   }
 
+  Widget _buildNavGroupHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 18, right: 18, top: 8, bottom: 6),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+          color: AppColors.textMuted,
+          letterSpacing: 0.8,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(
+    BuildContext context,
+    RoadmapLoaded state, {
+    required int index,
+    required IconData icon,
+    required String label,
+  }) {
+    final isSelected = state.activeTabIndex == index;
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+      child: InkWell(
+        onTap: () {
+          context.read<RoadmapBloc>().add(ChangeActiveTab(index));
+        },
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+          decoration: BoxDecoration(
+            color: isSelected ? AppColors.cardSurfaceHover : Colors.transparent,
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(
+              color: isSelected ? AppColors.borderLight : Colors.transparent,
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                color: isSelected ? Colors.white : AppColors.textMuted,
+                size: 18,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    color: isSelected ? Colors.white : AppColors.textSecondary,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildHeader(BuildContext context, RoadmapLoaded state) {
     final isSpring = state.currentRoadmapType == RoadmapType.springBackend;
 
     return Container(
-      height: 72,
-      padding: const EdgeInsets.symmetric(horizontal: 28),
+      height: 60,
+      padding: const EdgeInsets.symmetric(horizontal: 24),
       decoration: const BoxDecoration(
         color: AppColors.surface,
         border: Border(bottom: BorderSide(color: AppColors.border)),
@@ -206,23 +254,23 @@ class MainLayout extends StatelessWidget {
           // Breadcrumb Title
           Text(
             _getTabTitle(state.activeTabIndex),
-            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
+            style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
           ),
           const Spacer(),
 
           // Roadmap Switcher Segmented Control
           Container(
-            padding: const EdgeInsets.all(4),
+            padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(
               color: AppColors.background,
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(8),
               border: Border.all(color: AppColors.border),
             ),
             child: Row(
               children: [
                 _buildSegmentButton(
                   context,
-                  label: 'Backend Spring',
+                  label: 'Spring Backend',
                   isSelected: isSpring,
                   activeColor: AppColors.springGreen,
                   onTap: () {
@@ -255,24 +303,36 @@ class MainLayout extends StatelessWidget {
   }) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(6),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        duration: const Duration(milliseconds: 150),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? activeColor.withValues(alpha: 0.2) : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
+          color: isSelected ? AppColors.cardSurface : Colors.transparent,
+          borderRadius: BorderRadius.circular(6),
           border: Border.all(
-            color: isSelected ? activeColor : Colors.transparent,
+            color: isSelected ? AppColors.borderLight : Colors.transparent,
           ),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? activeColor : AppColors.textMuted,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            fontSize: 13,
-          ),
+        child: Row(
+          children: [
+            if (isSelected) ...[
+              Container(
+                width: 6,
+                height: 6,
+                decoration: BoxDecoration(color: activeColor, shape: BoxShape.circle),
+              ),
+              const SizedBox(width: 6),
+            ],
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? Colors.white : AppColors.textMuted,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                fontSize: 12,
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -281,17 +341,17 @@ class MainLayout extends StatelessWidget {
   String _getTabTitle(int tabIndex) {
     switch (tabIndex) {
       case 0:
-        return 'Dashboard Overview';
+        return 'Overview Dashboard';
       case 1:
-        return 'Lộ Trình Ôn Tập 12 Tuần';
+        return '12-Week Roadmap Explorer';
       case 2:
-        return 'Thực Hành Incident Drills Sản Xuất';
+        return 'Production Incident Drills';
       case 3:
-        return 'Ma Trận Ánh Xạ Concept Mobile ↔ Backend';
+        return 'Concept Matrix (Mobile ↔ Backend)';
       case 4:
-        return 'Bảng Chấm Điểm Self-Audit Baseline';
+        return 'Baseline Self-Audit Matrix';
       default:
-        return 'Review Hub';
+        return 'Mastery Workspace';
     }
   }
 
