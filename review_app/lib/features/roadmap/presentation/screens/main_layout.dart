@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../domain/entities/roadmap_type.dart';
 import '../bloc/roadmap_bloc.dart';
 import '../bloc/roadmap_event.dart';
 import '../bloc/roadmap_state.dart';
-import '../core/constants/app_colors.dart';
-import '../models/roadmap_models.dart';
 import 'concept_mapping_screen.dart';
 import 'dashboard_screen.dart';
 import 'incident_simulator_screen.dart';
@@ -50,17 +50,11 @@ class MainLayout extends StatelessWidget {
         return Scaffold(
           body: Row(
             children: [
-              // Sleek Sidebar (Linear / Vercel layout)
               _buildSidebar(context, loadedState),
-
-              // Main Workspace Panel
               Expanded(
                 child: Column(
                   children: [
-                    // Top App Bar
                     _buildHeader(context, loadedState),
-
-                    // Content View
                     Expanded(
                       child: _buildActiveTabContent(loadedState.activeTabIndex),
                     ),
@@ -84,7 +78,6 @@ class MainLayout extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Workspace Header / Logo
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 20),
             child: Row(
@@ -113,7 +106,7 @@ class MainLayout extends StatelessWidget {
                       style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: Colors.white, letterSpacing: -0.2),
                     ),
                     Text(
-                      'Senior Review Workspace',
+                      'Clean Architecture Workspace',
                       style: TextStyle(fontSize: 11, color: AppColors.textMuted),
                     ),
                   ],
@@ -124,21 +117,18 @@ class MainLayout extends StatelessWidget {
           const Divider(height: 1),
           const SizedBox(height: 12),
 
-          // Group 1: OVERVIEW & LEARNING
           _buildNavGroupHeader('LEARNING & DRILLS'),
           _buildNavItem(context, state, index: 0, icon: Icons.grid_view_rounded, label: 'Overview Dashboard'),
           _buildNavItem(context, state, index: 1, icon: Icons.format_list_bulleted_rounded, label: '12-Week Roadmap'),
           _buildNavItem(context, state, index: 2, icon: Icons.terminal_rounded, label: 'Incident Drills'),
 
           const SizedBox(height: 16),
-          // Group 2: CROSS DOMAIN & AUDIT
           _buildNavGroupHeader('CROSS-DOMAIN & AUDIT'),
           _buildNavItem(context, state, index: 3, icon: Icons.swap_horiz_rounded, label: 'Mobile ↔ Backend'),
           _buildNavItem(context, state, index: 4, icon: Icons.fact_check_outlined, label: 'Self-Audit Matrix'),
 
           const Spacer(),
 
-          // Bottom Active Mode Footer
           Container(
             margin: const EdgeInsets.all(12),
             padding: const EdgeInsets.all(12),
@@ -251,14 +241,12 @@ class MainLayout extends StatelessWidget {
       ),
       child: Row(
         children: [
-          // Breadcrumb Title
           Text(
             _getTabTitle(state.activeTabIndex),
             style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
           ),
           const Spacer(),
 
-          // Roadmap Switcher Segmented Control
           Container(
             padding: const EdgeInsets.all(3),
             decoration: BoxDecoration(

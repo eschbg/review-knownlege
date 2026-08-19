@@ -1,11 +1,11 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../domain/entities/roadmap_type.dart';
 import '../bloc/roadmap_bloc.dart';
 import '../bloc/roadmap_event.dart';
 import '../bloc/roadmap_state.dart';
-import '../core/constants/app_colors.dart';
-import '../models/roadmap_models.dart';
 
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
@@ -26,11 +26,9 @@ class DashboardScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Hero Welcome Section
               _buildHeroHeader(context, state, themeColor),
               const SizedBox(height: 24),
 
-              // KPI Stats Grid (3 Cards)
               Row(
                 children: [
                   Expanded(
@@ -73,18 +71,15 @@ class DashboardScreen extends StatelessWidget {
               ),
               const SizedBox(height: 28),
 
-              // Middle Section: Audit Bar Chart & Current Focus Card
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Left: Competency Bar Chart (2/3 width)
                   Expanded(
                     flex: 3,
                     child: _buildBarChartCard(context, state),
                   ),
                   const SizedBox(width: 20),
 
-                  // Right: Current Focus & Quick Actions (1/3 width)
                   Expanded(
                     flex: 2,
                     child: Column(
@@ -150,7 +145,7 @@ class DashboardScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 6),
                 const Text(
-                  'Track learning milestones, practice production triage drills, and evaluate core engineering capabilities.',
+                  'Clean Architecture + Feature-First implementation structure.',
                   style: TextStyle(color: AppColors.textSecondary, fontSize: 13),
                 ),
               ],
@@ -158,7 +153,7 @@ class DashboardScreen extends StatelessWidget {
           ),
           ElevatedButton.icon(
             onPressed: () {
-              context.read<RoadmapBloc>().add(const ChangeActiveTab(1)); // Open Explorer
+              context.read<RoadmapBloc>().add(const ChangeActiveTab(1));
             },
             icon: const Icon(Icons.arrow_forward_rounded, size: 16),
             label: const Text('Open Explorer'),
@@ -260,7 +255,7 @@ class DashboardScreen extends StatelessWidget {
               ),
               TextButton(
                 onPressed: () {
-                  context.read<RoadmapBloc>().add(const ChangeActiveTab(4)); // Audit Matrix
+                  context.read<RoadmapBloc>().add(const ChangeActiveTab(4));
                 },
                 child: const Text(
                   'Edit Audit →',
@@ -271,7 +266,6 @@ class DashboardScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Bar Chart Container
           SizedBox(
             height: 220,
             child: skills.isEmpty
@@ -415,7 +409,7 @@ class DashboardScreen extends StatelessWidget {
           const SizedBox(height: 14),
           OutlinedButton(
             onPressed: () {
-              context.read<RoadmapBloc>().add(const ChangeActiveTab(1)); // Open Explorer
+              context.read<RoadmapBloc>().add(const ChangeActiveTab(1));
             },
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.white,

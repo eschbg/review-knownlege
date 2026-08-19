@@ -1,16 +1,29 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../data/concept_mappings_data.dart';
-import '../data/flutter_roadmap_data.dart';
-import '../data/spring_roadmap_data.dart';
-import '../models/roadmap_models.dart';
+import '../../../../core/usecase/usecase.dart';
+import '../../domain/entities/roadmap_type.dart';
+import '../../domain/entities/week_item.dart';
+import '../../domain/usecases/get_roadmap_data.dart';
+import '../../domain/usecases/save_week_deliverables.dart';
+import '../../domain/usecases/submit_incident_answer.dart';
+import '../../domain/usecases/toggle_week_completed.dart';
+import '../../domain/usecases/update_audit_score.dart';
 import 'roadmap_event.dart';
 import 'roadmap_state.dart';
 
 class RoadmapBloc extends Bloc<RoadmapEvent, RoadmapState> {
-  SharedPreferences? _prefs;
+  final GetRoadmapData getRoadmapData;
+  final ToggleWeekCompletedUseCase toggleWeekCompletedUseCase;
+  final SaveWeekDeliverablesUseCase saveWeekDeliverablesUseCase;
+  final UpdateAuditScoreUseCase updateAuditScoreUseCase;
+  final SubmitIncidentAnswerUseCase submitIncidentAnswerUseCase;
 
-  RoadmapBloc() : super(RoadmapLoading()) {
+  RoadmapBloc({
+    required this.getRoadmapData,
+    required this.toggleWeekCompletedUseCase,
+    required this.saveWeekDeliverablesUseCase,
+    required this.updateAuditScoreUseCase,
+    required this.submitIncidentAnswerUseCase,
+  }) : super(RoadmapLoading()) {
     on<LoadRoadmapData>(_onLoadRoadmapData);
     on<SwitchRoadmapType>(_onSwitchRoadmapType);
     on<ChangeActiveTab>(_onChangeActiveTab);
@@ -25,65 +38,19 @@ class RoadmapBloc extends Bloc<RoadmapEvent, RoadmapState> {
     Emitter<RoadmapState> emit,
   ) async {
     try {
-      _prefs = await SharedPreferences.getInstance();
-
-      // Load initial datasets
-      var springSkills = SpringRoadmapData.getAuditSkills();
-      var flutterSkills = FlutterRoadmapData.getAuditSkills();
-      var springWeeks = SpringRoadmapData.getWeeks();
-      var flutterWeeks = FlutterRoadmapData.getWeeks();
-      var mappings = ConceptMappingsData.getMappings();
-
-      // Restore stored scores
-      springSkills = springSkills.map((skill) {
-        final savedScore = _prefs?.getInt('audit_${skill.id}') ?? skill.score;
-        return skill.copyWith(score: savedScore);
-      }).toList();
-
-      flutterSkills = flutterSkills.map((skill) {
-        final savedScore = _prefs?.getInt('audit_${skill.id}') ?? skill.score;
-        return skill.copyWith(score: savedScore);
-      }).toList();
-
-      // Restore stored completion & deliverables
-      springWeeks = _restoreWeekItems(springWeeks, RoadmapType.springBackend);
-      flutterWeeks = _restoreWeekItems(flutterWeeks, RoadmapType.mobileFlutter);
+      final result = await getRoadmapData(NoParams());
 
       emit(RoadmapLoaded(
         currentRoadmapType: RoadmapType.springBackend,
-        springWeeks: springWeeks,
-        flutterWeeks: flutterWeeks,
-        springAuditSkills: springSkills,
-        flutterAuditSkills: flutterSkills,
-        conceptMappings: mappings,
+        springWeeks: result.springWeeks,
+        flutterWeeks: result.flutterWeeks,
+        springAuditSkills: result.springAuditSkills,
+        flutterAuditSkills: result.flutterAuditSkills,
+        conceptMappings: result.conceptMappings,
       ));
     } catch (e) {
-      emit(RoadmapError('Không thể tải dữ liệu: $e'));
+      emit(RoadmapError('Failed to load roadmap data: $e'));
     }
-  }
-
-  List<WeekItem> _restoreWeekItems(List<WeekItem> weeks, RoadmapType type) {
-    final prefix = type.name;
-    return weeks.map((w) {
-      final isCompleted = _prefs?.getBool('${prefix}_w${w.weekNumber}_completed') ?? w.isCompleted;
-      final notes = _prefs?.getString('${prefix}_w${w.weekNumber}_notes') ?? w.userNotes;
-      final prLink = _prefs?.getString('${prefix}_w${w.weekNumber}_pr') ?? w.prLink;
-
-      IncidentScenario? inc = w.incidentDrill;
-      if (inc != null) {
-        final selectedOpt = _prefs?.getInt('${prefix}_inc_${inc.id}_ans');
-        if (selectedOpt != null) {
-          inc = inc.copyWith(selectedOptionIndex: selectedOpt);
-        }
-      }
-
-      return w.copyWith(
-        isCompleted: isCompleted,
-        userNotes: notes,
-        prLink: prLink,
-        incidentDrill: inc,
-      );
-    }).toList();
   }
 
   void _onSwitchRoadmapType(
@@ -112,7 +79,11 @@ class RoadmapBloc extends Bloc<RoadmapEvent, RoadmapState> {
   ) async {
     if (state is RoadmapLoaded) {
       final currentState = state as RoadmapLoaded;
-      await _prefs?.setInt('audit_${event.skillId}', event.newScore);
+
+      await updateAuditScoreUseCase(UpdateAuditScoreParams(
+        skillId: event.skillId,
+        newScore: event.newScore,
+      ));
 
       final updatedSpring = currentState.springAuditSkills.map((s) {
         return s.id == event.skillId ? s.copyWith(score: event.newScore) : s;
@@ -138,10 +109,25 @@ class RoadmapBloc extends Bloc<RoadmapEvent, RoadmapState> {
       final isSpring = event.roadmapType == RoadmapType.springBackend;
       final weeks = isSpring ? currentState.springWeeks : currentState.flutterWeeks;
 
+      WeekItem? targetWeek;
+      for (var w in weeks) {
+        if (w.weekNumber == event.weekNumber) {
+          targetWeek = w;
+          break;
+        }
+      }
+
+      if (targetWeek == null) return;
+      final newCompleted = !targetWeek.isCompleted;
+
+      await toggleWeekCompletedUseCase(ToggleWeekParams(
+        type: event.roadmapType,
+        weekNumber: event.weekNumber,
+        isCompleted: newCompleted,
+      ));
+
       final updatedWeeks = weeks.map((w) {
         if (w.weekNumber == event.weekNumber) {
-          final newCompleted = !w.isCompleted;
-          _prefs?.setBool('${event.roadmapType.name}_w${w.weekNumber}_completed', newCompleted);
           return w.copyWith(isCompleted: newCompleted);
         }
         return w;
@@ -164,8 +150,12 @@ class RoadmapBloc extends Bloc<RoadmapEvent, RoadmapState> {
       final isSpring = event.roadmapType == RoadmapType.springBackend;
       final weeks = isSpring ? currentState.springWeeks : currentState.flutterWeeks;
 
-      await _prefs?.setString('${event.roadmapType.name}_w${event.weekNumber}_notes', event.userNotes);
-      await _prefs?.setString('${event.roadmapType.name}_w${event.weekNumber}_pr', event.prLink);
+      await saveWeekDeliverablesUseCase(SaveDeliverablesParams(
+        type: event.roadmapType,
+        weekNumber: event.weekNumber,
+        prLink: event.prLink,
+        userNotes: event.userNotes,
+      ));
 
       final updatedWeeks = weeks.map((w) {
         if (w.weekNumber == event.weekNumber) {
@@ -189,9 +179,14 @@ class RoadmapBloc extends Bloc<RoadmapEvent, RoadmapState> {
     if (state is RoadmapLoaded) {
       final currentState = state as RoadmapLoaded;
 
+      await submitIncidentAnswerUseCase(SubmitIncidentParams(
+        type: currentState.currentRoadmapType,
+        scenarioId: event.scenarioId,
+        optionIndex: event.optionIndex,
+      ));
+
       WeekItem updateWeek(WeekItem w) {
         if (w.incidentDrill?.id == event.scenarioId) {
-          _prefs?.setInt('${w.roadmapType.name}_inc_${event.scenarioId}_ans', event.optionIndex);
           final updatedDrill = w.incidentDrill!.copyWith(selectedOptionIndex: event.optionIndex);
           return w.copyWith(incidentDrill: updatedDrill);
         }

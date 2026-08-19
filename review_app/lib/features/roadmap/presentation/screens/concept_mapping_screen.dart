@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../core/constants/app_colors.dart';
-import '../data/concept_mappings_data.dart';
-import '../models/roadmap_models.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../../../data/concept_mappings_data.dart';
+import '../../domain/entities/concept_mapping.dart';
 
 class ConceptMappingScreen extends StatelessWidget {
   const ConceptMappingScreen({super.key});
@@ -15,7 +15,6 @@ class ConceptMappingScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -56,7 +55,6 @@ class ConceptMappingScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
 
-          // Mapping Cards List
           ...mappings.map((mapping) => _buildMappingCard(context, mapping)),
         ],
       ),
@@ -74,7 +72,6 @@ class ConceptMappingScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Topic Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
             decoration: const BoxDecoration(
@@ -99,11 +96,9 @@ class ConceptMappingScreen extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Side-by-side Paradigm Comparison Grid
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Flutter Paradigm Box
                     Expanded(
                       child: Container(
                         padding: const EdgeInsets.all(16),
@@ -138,7 +133,6 @@ class ConceptMappingScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 16),
 
-                    // Spring Paradigm Box
                     Expanded(
                       child: Container(
                         padding: const EdgeInsets.all(16),
@@ -175,7 +169,6 @@ class ConceptMappingScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
 
-                // Key Insight Box
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(14),

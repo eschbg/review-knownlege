@@ -1,5 +1,9 @@
 import 'package:equatable/equatable.dart';
-import '../models/roadmap_models.dart';
+import '../../domain/entities/audit_skill.dart';
+import '../../domain/entities/concept_mapping.dart';
+import '../../domain/entities/incident_scenario.dart';
+import '../../domain/entities/roadmap_type.dart';
+import '../../domain/entities/week_item.dart';
 
 abstract class RoadmapState extends Equatable {
   const RoadmapState();

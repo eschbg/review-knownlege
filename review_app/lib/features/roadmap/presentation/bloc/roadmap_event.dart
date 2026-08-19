@@ -1,5 +1,5 @@
 import 'package:equatable/equatable.dart';
-import '../models/roadmap_models.dart';
+import '../../domain/entities/roadmap_type.dart';
 
 abstract class RoadmapEvent extends Equatable {
   const RoadmapEvent();
@@ -38,6 +38,7 @@ class UpdateAuditScore extends RoadmapEvent {
 class ToggleWeekCompleted extends RoadmapEvent {
   final RoadmapType roadmapType;
   final int weekNumber;
+
   const ToggleWeekCompleted(this.roadmapType, this.weekNumber);
 
   @override

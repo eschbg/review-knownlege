@@ -1,4 +1,7 @@
-import '../models/roadmap_models.dart';
+import '../features/roadmap/domain/entities/audit_skill.dart';
+import '../features/roadmap/domain/entities/incident_scenario.dart';
+import '../features/roadmap/domain/entities/roadmap_type.dart';
+import '../features/roadmap/domain/entities/week_item.dart';
 
 class SpringRoadmapData {
   static List<AuditSkill> getAuditSkills() {

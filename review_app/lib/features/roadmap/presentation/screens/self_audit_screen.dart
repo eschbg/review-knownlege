@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../domain/entities/audit_skill.dart';
 import '../bloc/roadmap_bloc.dart';
 import '../bloc/roadmap_event.dart';
 import '../bloc/roadmap_state.dart';
-import '../core/constants/app_colors.dart';
-import '../models/roadmap_models.dart';
 
 class SelfAuditScreen extends StatelessWidget {
   const SelfAuditScreen({super.key});
@@ -24,7 +24,6 @@ class SelfAuditScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -68,11 +67,9 @@ class SelfAuditScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
 
-              // Rating Legend Bar
               _buildRatingLegend(),
               const SizedBox(height: 24),
 
-              // Skill Cards List
               ...skills.map((skill) => _buildSkillAuditCard(context, skill)),
             ],
           ),
@@ -174,7 +171,6 @@ class SelfAuditScreen extends StatelessWidget {
           ),
           const SizedBox(width: 20),
 
-          // Rating score pills (0 to 4)
           Row(
             children: List.generate(5, (scoreValue) {
               final isSelected = skill.score == scoreValue;

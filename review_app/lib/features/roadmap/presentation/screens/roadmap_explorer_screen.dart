@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../domain/entities/incident_scenario.dart';
+import '../../domain/entities/roadmap_type.dart';
+import '../../domain/entities/week_item.dart';
 import '../bloc/roadmap_bloc.dart';
 import '../bloc/roadmap_event.dart';
 import '../bloc/roadmap_state.dart';
-import '../core/constants/app_colors.dart';
-import '../models/roadmap_models.dart';
 
 class RoadmapExplorerScreen extends StatefulWidget {
   const RoadmapExplorerScreen({super.key});
@@ -34,7 +36,6 @@ class _RoadmapExplorerScreenState extends State<RoadmapExplorerScreen> {
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Left Timeline Sidebar (300px width)
             SizedBox(
               width: 300,
               child: Container(
@@ -53,8 +54,6 @@ class _RoadmapExplorerScreenState extends State<RoadmapExplorerScreen> {
                 ),
               ),
             ),
-
-            // Right Detail Content Panel
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(28),
@@ -91,7 +90,6 @@ class _RoadmapExplorerScreenState extends State<RoadmapExplorerScreen> {
         ),
         child: Row(
           children: [
-            // Status Checkbox Icon
             InkWell(
               onTap: () {
                 context.read<RoadmapBloc>().add(
@@ -159,7 +157,6 @@ class _RoadmapExplorerScreenState extends State<RoadmapExplorerScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Header Section
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -236,7 +233,6 @@ class _RoadmapExplorerScreenState extends State<RoadmapExplorerScreen> {
         ),
         const SizedBox(height: 24),
 
-        // Section 1: Review Topics Card
         _buildSectionCard(
           title: 'Review Topics & Core Concepts',
           icon: Icons.auto_stories_outlined,
@@ -272,7 +268,6 @@ class _RoadmapExplorerScreenState extends State<RoadmapExplorerScreen> {
         ),
         const SizedBox(height: 20),
 
-        // Section 2: Practical Exercises Card
         _buildSectionCard(
           title: 'Practical Coding Exercises',
           icon: Icons.code_rounded,
@@ -300,13 +295,11 @@ class _RoadmapExplorerScreenState extends State<RoadmapExplorerScreen> {
         ),
         const SizedBox(height: 20),
 
-        // Section 3: Incident Drill Shortcut (If exists)
         if (week.incidentDrill != null) ...[
           _buildIncidentShortcutCard(context, week.incidentDrill!),
           const SizedBox(height: 20),
         ],
 
-        // Section 4: Deliverables & Evidence Input Card
         _buildDeliverablesCard(context, week),
       ],
     );
@@ -403,7 +396,7 @@ class _RoadmapExplorerScreenState extends State<RoadmapExplorerScreen> {
           const SizedBox(width: 14),
           OutlinedButton(
             onPressed: () {
-              context.read<RoadmapBloc>().add(const ChangeActiveTab(2)); // Go to Incident Simulator
+              context.read<RoadmapBloc>().add(const ChangeActiveTab(2));
             },
             style: OutlinedButton.styleFrom(
               foregroundColor: Colors.white,
@@ -460,7 +453,6 @@ class _RoadmapExplorerScreenState extends State<RoadmapExplorerScreen> {
           ),
           const SizedBox(height: 20),
 
-          // PR Link TextField
           TextField(
             controller: prController,
             style: const TextStyle(color: Colors.white, fontSize: 13),
@@ -496,7 +488,6 @@ class _RoadmapExplorerScreenState extends State<RoadmapExplorerScreen> {
           ),
           const SizedBox(height: 12),
 
-          // Notes / ADR TextField
           TextField(
             controller: notesController,
             maxLines: 3,

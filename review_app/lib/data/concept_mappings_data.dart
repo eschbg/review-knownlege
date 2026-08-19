@@ -1,4 +1,4 @@
-import '../models/roadmap_models.dart';
+import '../features/roadmap/domain/entities/concept_mapping.dart';
 
 class ConceptMappingsData {
   static List<ConceptMapping> getMappings() {

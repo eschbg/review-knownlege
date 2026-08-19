@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/constants/app_colors.dart';
+import '../../domain/entities/incident_scenario.dart';
 import '../bloc/roadmap_bloc.dart';
 import '../bloc/roadmap_event.dart';
 import '../bloc/roadmap_state.dart';
-import '../core/constants/app_colors.dart';
-import '../models/roadmap_models.dart';
 
 class IncidentSimulatorScreen extends StatefulWidget {
   const IncidentSimulatorScreen({super.key});
@@ -37,7 +37,6 @@ class _IncidentSimulatorScreenState extends State<IncidentSimulatorScreen> {
         return Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Left Selector Drawer (280px width)
             SizedBox(
               width: 280,
               child: Container(
@@ -140,8 +139,6 @@ class _IncidentSimulatorScreenState extends State<IncidentSimulatorScreen> {
                 ),
               ),
             ),
-
-            // Right Main Player Area
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(28),
@@ -160,7 +157,6 @@ class _IncidentSimulatorScreenState extends State<IncidentSimulatorScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Title Header
         Row(
           children: [
             Container(
@@ -189,7 +185,6 @@ class _IncidentSimulatorScreenState extends State<IncidentSimulatorScreen> {
         ),
         const SizedBox(height: 20),
 
-        // Terminal-style Symptom Log Box
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(18),
@@ -232,7 +227,6 @@ class _IncidentSimulatorScreenState extends State<IncidentSimulatorScreen> {
         ),
         const SizedBox(height: 24),
 
-        // Options Triage Header
         const Text(
           'Select Triage Strategy:',
           style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
@@ -325,10 +319,8 @@ class _IncidentSimulatorScreenState extends State<IncidentSimulatorScreen> {
           }).toList(),
         ),
 
-        // Root Cause Analysis & Postmortem when answered
         if (hasAnswered) ...[
           const SizedBox(height: 24),
-          // RCA Card
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -369,7 +361,6 @@ class _IncidentSimulatorScreenState extends State<IncidentSimulatorScreen> {
           ),
           const SizedBox(height: 16),
 
-          // Postmortem Template Code Box
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
